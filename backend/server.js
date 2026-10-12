@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express"
 import cookieParser from 'cookie-parser'
 import { connectDB } from './src/config/db.js'
+import './src/config/redis.js'
 import { errorHandler } from './src/middlewares/errorHandle.js'
 import router from "./src/routes/v1/index.js"
 import cors from "cors"

@@ -44,7 +44,6 @@ export const getSuggestions = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 8;
-
   const result = await getFriendSuggestions(userId, page, limit);
   return res.status(200).json(result);
 });

@@ -1,5 +1,4 @@
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import { User } from "../models/User.js";
 import ApiError from "../utils/ApiError.js";
 import {
@@ -11,11 +10,15 @@ import {
 } from "./otpService.js";
 import { sendPasswordChangedEmail } from "./emailService.js";
 import {
-  saveRefreshToken,
+  createAccessToken,
   createRefreshToken,
+  saveRefreshToken,
   deleteRefreshToken,
   verifyRefreshToken,
-} from "./sessionService.js";
+  revokeAllUserTokens,
+} from "./jwtService.js";
+
+export { createAccessToken };
 
 export const checkEmail = async (email) => {
   const existingEmail = await User.findOne({ email: email.toLowerCase().trim() });
@@ -41,12 +44,6 @@ export const checkPassword = async (plainPassword, hashedPassword) => {
     throw new ApiError(401, "Mật khẩu không chính xác");
   }
   return true;
-};
-
-export const createAccessToken = (userId) => {
-  return jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: "15m",
-  });
 };
 
 export const registerService = async ({ username, email, password, firstname, lastname }) => {
@@ -166,6 +163,8 @@ export const resetPasswordService = async ({ email, otp, newPassword }) => {
   user.resetPasswordOtp = undefined;
   user.resetPasswordOtpExpires = undefined;
   await user.save();
+
+  await revokeAllUserTokens(user._id);
 
   await sendPasswordChangedEmail(user.email, user.displayName);
 
